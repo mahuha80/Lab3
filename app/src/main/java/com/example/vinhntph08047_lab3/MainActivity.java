@@ -1,5 +1,6 @@
 package com.example.vinhntph08047_lab3;
 
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -9,6 +10,11 @@ import android.widget.EditText;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +29,7 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RvAdapter.OnItemClickListener {
     CompositeDisposable compositeDisposable = new CompositeDisposable();
     Disposable disposable;
     RecyclerView recyclerView;
@@ -37,22 +43,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         recyclerView = findViewById(R.id.rvMain);
         editText = findViewById(R.id.edSearch);
-
-        HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
-        httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-
-        OkHttpClient okHttpClient = new OkHttpClient.Builder().connectTimeout(10L, TimeUnit.SECONDS)
-                .writeTimeout(10L, TimeUnit.SECONDS)
-                .readTimeout(10L, TimeUnit.SECONDS)
-                .readTimeout(10L, TimeUnit.SECONDS)
-                .addInterceptor(httpLoggingInterceptor)
-                .build();
-        API api = new Retrofit.Builder().baseUrl(API.BASE_URL)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(okHttpClient)
-                .build()
-                .create(API.class);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -61,11 +51,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                Disposable disposable = api.getRootModel(charSequence.toString())
+                disposable = NetModule.getAPIService().getRootModel(charSequence.toString())
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(this::handleResponse, this::handleError);
-                compositeDisposable.add(disposable);
             }
 
             private void handleResponse(List<RootModel> rootModels) {
@@ -80,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        disposable = api.getRootModel("android")
+        disposable = NetModule.getAPIService().getRootModel("android")
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(this::handleResponse, this::handleError);
@@ -88,11 +77,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleResponse(List<RootModel> rootModel) {
-        rvAdapter = new RvAdapter(this, rootModel);
+        rvAdapter = new RvAdapter(this, rootModel, this::onItemClick);
         recyclerView.setAdapter(rvAdapter);
     }
 
     private void handleError(Throwable throwable) {
+
     }
 
     @Override
@@ -100,4 +90,12 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         compositeDisposable.clear();
     }
+
+    @Override
+    public void onItemClick(RootModel rootModel) {
+        Intent intent = new Intent(MainActivity.this, DetailActivity.class);
+        intent.putExtra("id",String.valueOf(rootModel.getId()));
+        startActivity(intent);
+    }
+
 }

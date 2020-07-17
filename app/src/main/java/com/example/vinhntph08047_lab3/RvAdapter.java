@@ -12,16 +12,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> implements Filterable {
     private Context context;
     private List<RootModel> list;
+    private OnItemClickListener callback;
 
-    public RvAdapter(Context context, List<RootModel> list) {
+    public RvAdapter(Context context, List<RootModel> list, OnItemClickListener callback) {
         this.context = context;
         this.list = list;
+        this.callback = callback;
     }
 
     @NonNull
@@ -56,7 +57,11 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> implements
         notifyDataSetChanged();
     }
 
-    public class RecordFilter extends Filter{
+    public interface OnItemClickListener {
+        void onItemClick(RootModel rootModel);
+    }
+
+    public class RecordFilter extends Filter {
 
         @Override
         protected FilterResults performFiltering(CharSequence charSequence) {
@@ -76,7 +81,7 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> implements
         public Holder(@NonNull View itemView) {
             super(itemView);
             tvId = itemView.findViewById(R.id.tvId);
-            tvTitle = itemView.findViewById(R.id.tvTitle);
+            tvTitle = itemView.findViewById(R.id.tvModified);
             tvType = itemView.findViewById(R.id.tvType);
         }
 
@@ -84,6 +89,12 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> implements
             tvId.setText(String.valueOf(list.get(position).getId()));
             tvTitle.setText(String.valueOf(list.get(position).getTitle()));
             tvType.setText(String.valueOf(list.get(position).getUrl()));
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    callback.onItemClick(list.get(position));
+                }
+            });
         }
     }
 }

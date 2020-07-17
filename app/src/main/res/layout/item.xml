@@ -8,7 +8,7 @@
 
     <TextView
         android:textColor="@color/colorPrimary"
-        android:id="@+id/tvTitle"
+        android:id="@+id/tvModified"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -38,7 +38,7 @@
         app:layout_constraintBottom_toTopOf="@+id/tvType"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@+id/tvModified"
         android:gravity="center_horizontal"
         android:textSize="20sp"/>
 
