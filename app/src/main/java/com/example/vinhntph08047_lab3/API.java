@@ -4,10 +4,11 @@ import java.util.List;
 
 import io.reactivex.Observable;
 import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface API {
-    public static final String BASE_URL = "http://dotplays.com/";
+    String BASE_URL = "http://dotplays.com/";
 
-    @GET("wp-json/wp/v2/search?search=android&_embed")
-    Observable<List<RootModel>> getRootModel();
+    @GET("wp-json/wp/v2/search?_embed")
+    Observable<List<RootModel>> getRootModel(@Query("search") String search);
 }

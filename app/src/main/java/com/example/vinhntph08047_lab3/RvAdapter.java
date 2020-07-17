@@ -4,15 +4,18 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> {
+public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> implements Filterable {
     private Context context;
     private List<RootModel> list;
 
@@ -38,6 +41,34 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> {
         return list.size();
     }
 
+    @Override
+    public Filter getFilter() {
+        Filter fRecords = null;
+        if (fRecords == null) {
+            fRecords = new RecordFilter();
+        }
+        return fRecords;
+    }
+
+    public void updateData(List<RootModel> rootModels) {
+        this.list.clear();
+        this.list = rootModels;
+        notifyDataSetChanged();
+    }
+
+    public class RecordFilter extends Filter{
+
+        @Override
+        protected FilterResults performFiltering(CharSequence charSequence) {
+            return null;
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+
+        }
+    }
+
     public class Holder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvId, tvType;
         ImageView img;
@@ -47,13 +78,12 @@ public class RvAdapter extends RecyclerView.Adapter<RvAdapter.Holder> {
             tvId = itemView.findViewById(R.id.tvId);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvType = itemView.findViewById(R.id.tvType);
-            img = itemView.findViewById(R.id.imageView);
         }
 
         public void bindItem(int position) {
             tvId.setText(String.valueOf(list.get(position).getId()));
             tvTitle.setText(String.valueOf(list.get(position).getTitle()));
-            tvType.setText(String.valueOf(list.get(position).getType()));
+            tvType.setText(String.valueOf(list.get(position).getUrl()));
         }
     }
 }

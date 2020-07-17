@@ -1,12 +1,14 @@
 package com.example.vinhntph08047_lab3;
 
+import android.os.Build;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.EditText;
+
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -25,12 +27,16 @@ public class MainActivity extends AppCompatActivity {
     CompositeDisposable compositeDisposable = new CompositeDisposable();
     Disposable disposable;
     RecyclerView recyclerView;
+    EditText editText;
+    RvAdapter rvAdapter;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         recyclerView = findViewById(R.id.rvMain);
+        editText = findViewById(R.id.edSearch);
 
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -45,8 +51,36 @@ public class MainActivity extends AppCompatActivity {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
-                .build().create(API.class);
-        disposable = api.getRootModel()
+                .build()
+                .create(API.class);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                Disposable disposable = api.getRootModel(charSequence.toString())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(this::handleResponse, this::handleError);
+                compositeDisposable.add(disposable);
+            }
+
+            private void handleResponse(List<RootModel> rootModels) {
+                rvAdapter.updateData(rootModels);
+            }
+
+            private void handleError(Throwable throwable) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        });
+        disposable = api.getRootModel("android")
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeOn(Schedulers.io())
                 .subscribe(this::handleResponse, this::handleError);
@@ -54,10 +88,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleResponse(List<RootModel> rootModel) {
-        RvAdapter rvAdapter = new RvAdapter(this, rootModel);
+        rvAdapter = new RvAdapter(this, rootModel);
         recyclerView.setAdapter(rvAdapter);
     }
 
     private void handleError(Throwable throwable) {
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        compositeDisposable.clear();
     }
 }
